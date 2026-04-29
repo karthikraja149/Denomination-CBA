@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CBA TEAM WORK</title>
+
+<style>
+body { font-family: Arial; margin:0; background:#eef1f5; }
+
+.header {
+    background:#007bff;
+    color:#fff;
+    padding:12px 15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+.title { font-size:18px; font-weight:bold; }
+.sub { font-size:12px; }
+
+.container { max-width:500px; margin:auto; padding:15px; }
+
+.card {
+    background:#fff;
+    padding:15px;
+    margin-bottom:12px;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+input {
+    width:100%;
+    padding:10px;
+    margin:6px 0;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+.row {
+    display:flex;
+    justify-content:space-between;
+}
+.row input { width:70px; }
+
+.result { font-weight:bold; margin-top:8px; }
+
+table { width:100%; border-collapse:collapse; }
+th {
+    background:#2f5d6e;
+    color:white;
+    padding:10px;
+}
+td { padding:10px; text-align:center; }
+
+.small-input { width:70px; }
+
+.box {
+    background:#eee;
+    padding:12px;
+    border-radius:12px;
+    text-align:center;
+    font-weight:bold;
+    margin-top:10px;
+}
+
+button {
+    width:100%;
+    padding:10px;
+    margin-top:8px;
+    border:none;
+    border-radius:8px;
+    background:#007bff;
+    color:white;
+}
+
+.clear-btn { background:red; }
+
+.history {
+    max-height:200px;
+    overflow:auto;
+    font-size:13px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <div class="title">CBA TEAM WORK</div>
+    <div class="sub">CBAG05587 KARTHIK RAJA . S</div>
+</div>
+
+<div class="container">
+
+<!-- BASIC -->
+<div class="card">
+<input type="text" id="name" placeholder="Enter Name">
+<input type="number" id="pending" placeholder="EDD Pending (info)">
+<input type="number" id="cod" placeholder="COD Amount" oninput="calcDenom()">
+</div>
+
+<!-- DENOM -->
+<div class="card">
+<h3>Denomination</h3>
+<div id="denoms"></div>
+
+<div class="result">Total: ₹<span id="d_total">0</span></div>
+<div class="result" id="status"></div>
+
+<button onclick="saveDenom()">Save Denomination</button>
+</div>
+
+<!-- SHIPMENT -->
+<div class="card">
+<h3>Shipment Distribution</h3>
+
+<table>
+<tr>
+<th>Area</th>
+<th>Ship</th>
+<th>Balance</th>
+</tr>
+
+<tr>
+<td>CNM</td>
+<td><input class="small-input" id="cnm" oninput="calcShip()"></td>
+<td id="b_cnm">-</td>
+</tr>
+
+<tr>
+<td>UPM</td>
+<td><input class="small-input" id="upm" oninput="calcShip()"></td>
+<td id="b_upm">-</td>
+</tr>
+
+<tr>
+<td>AMPATTY</td>
+<td><input class="small-input" id="amp" oninput="calcShip()"></td>
+<td id="b_amp">-</td>
+</tr>
+
+<tr>
+<td>GL</td>
+<td><input class="small-input" id="gl" oninput="calcShip()"></td>
+<td id="b_gl">-</td>
+</tr>
+
+<tr>
+<td><b>CBA (No Share)</b></td>
+<td><input class="small-input" id="cba" oninput="calcShip()"></td>
+<td id="b_cba">-</td>
+</tr>
+</table>
+
+<div class="box">
+Total Shipments: <span id="s_total">0</span><br>
+Equal Share (4 only): <span id="share">0</span>
+</div>
+
+<button onclick="saveShip()">Save Shipment</button>
+<button class="clear-btn" onclick="clearAll()">Clear All</button>
+</div>
+
+<!-- HISTORY -->
+<div class="card">
+<h3>History</h3>
+<div id="history" class="history"></div>
+</div>
+
+</div>
+
+<script>
+
+/* DENOM */
+const notes=[500,200,100,50,20,10,1];
+let d=document.getElementById("denoms");
+
+notes.forEach(n=>{
+d.innerHTML+=`
+<div class="row">
+₹${n}
+<input type="number" oninput="calcDenom()" id="n${n}">
+<span id="t${n}"></span>
+</div>`;
+});
+
+function calcDenom(){
+let total=0;
+
+notes.forEach(n=>{
+let q=document.getElementById("n"+n).value;
+if(q){
+let v=q*n;
+document.getElementById("t"+n).innerText=v;
+total+=v;
+}else{
+document.getElementById("t"+n).innerText="";
+}
+});
+
+document.getElementById("d_total").innerText=total;
+
+let cod=+document.getElementById("cod").value||0;
+let s=document.getElementById("status");
+
+if(total>cod){
+s.innerText="Excess ₹"+(total-cod);
+s.style.color="green";
+}
+else if(total<cod){
+s.innerText="Short ₹"+(cod-total);
+s.style.color="red";
+}
+else{
+s.innerText="Perfect Match";
+s.style.color="blue";
+}
+}
+
+/* SHIPMENT */
+function calcShip(){
+let cnm=+document.getElementById("cnm").value||0;
+let upm=+document.getElementById("upm").value||0;
+let amp=+document.getElementById("amp").value||0;
+let gl=+document.getElementById("gl").value||0;
+let cba=+document.getElementById("cba").value||0;
+
+let total=cnm+upm+amp+gl+cba;
+document.getElementById("s_total").innerText=total;
+
+let share=Math.round(total/4);
+document.getElementById("share").innerText=share;
+
+setBal("cnm",cnm,share);
+setBal("upm",upm,share);
+setBal("amp",amp,share);
+setBal("gl",gl,share);
+
+let bal=(share-cnm)+(share-upm)+(share-amp)+(share-gl);
+document.getElementById("b_cba").innerText=bal;
+}
+
+function setBal(id,val,share){
+let diff=share-val;
+document.getElementById("b_"+id).innerText =
+diff>0 ? "+"+diff : diff<0 ? diff : "0";
+}
+
+/* SAVE DENOM DETAILS */
+function saveDenom(){
+let name=document.getElementById("name").value || "No Name";
+let date=new Date().toLocaleString();
+
+let details=[];
+notes.forEach(n=>{
+let q=document.getElementById("n"+n).value;
+if(q && q>0){
+details.push(`${n}×${q}=${n*q}`);
+}
+});
+
+let total=document.getElementById("d_total").innerText;
+
+let data = `
+<b>DENOM</b> | ${date} | ${name}<br>
+${details.join(" | ")}<br>
+Total ₹${total}
+`;
+
+save(data);
+}
+
+/* SAVE SHIPMENT DETAILS */
+function saveShip(){
+let name=document.getElementById("name").value || "No Name";
+let date=new Date().toLocaleString();
+
+let cnm=document.getElementById("cnm").value||0;
+let upm=document.getElementById("upm").value||0;
+let amp=document.getElementById("amp").value||0;
+let gl=document.getElementById("gl").value||0;
+let cba=document.getElementById("cba").value||0;
+
+let total=document.getElementById("s_total").innerText;
+let share=document.getElementById("share").innerText;
+
+let data = `
+<b>SHIP</b> | ${date} | ${name}<br>
+CNM:${cnm} | UPM:${upm} | AMPATTY:${amp} | GL:${gl} | CBA:${cba}<br>
+Total:${total} | Share:${share}
+`;
+
+save(data);
+}
+
+/* STORAGE */
+function save(data){
+let h=JSON.parse(localStorage.getItem("history")||"[]");
+h.push(data);
+localStorage.setItem("history",JSON.stringify(h));
+load();
+}
+
+function load(){
+let h=JSON.parse(localStorage.getItem("history")||"[]");
+document.getElementById("history").innerHTML =
+h.map(x=>`<div style="margin-bottom:10px;">${x}</div>`).join("");
+}
+
+/* PASSWORD CLEAR */
+function clearAll(){
+let pass = prompt("Enter Password to Clear:");
+
+if(pass === "CBAG05587"){
+    if(confirm("Are you sure to clear all data?")){
+        document.querySelectorAll("input").forEach(i=>i.value="");
+
+        document.querySelectorAll("span").forEach(s=>{
+            if(s.id.includes("total") || s.id.includes("share"))
+                s.innerText="0";
+            else
+                s.innerText="-";
+        });
+
+        localStorage.removeItem("history");
+        load();
+
+        alert("Cleared Successfully ✅");
+    }
+} else {
+    alert("Wrong Password ❌");
+}
+}
+
+load();
+</script>
+
+</body>
+</html>
